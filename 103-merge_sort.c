@@ -1,97 +1,85 @@
 #include "sort.h"
 
-/**
- * print_parts - Prints part of the list.
- *
- * @array: Input array.
- * @min: Start of array.
- * @max: End of array.
- */
-void print_parts(int *array, size_t min, size_t max)
-{
-	size_t i;
-
-	for (i = min; i < max; i++)
-	{
-		if (i > min)
-			printf(", ");
-		printf("%d", array[i]);
-	}
-	printf("\n");
-}
+void mergeSubarray(int *subary, int *bufr, size_t start, size_t middl,
+		size_t last);
+void mergeSort_recurse(int *subary, int *bufr, size_t start, size_t last);
+void merge_sort(int *array, size_t size);
 
 /**
- * top_down - Merge using the top-down method.
- * @A: Original input of array.
- * @B: Temporary array for merging.
- * @min: Start of array.
- * @mid: Middle of the array.
- * @max: End of array.
+ * mergeSubarray - Sort a subarray of integers.
+ * @subary: A subarray of an array of integers to be sorted.
+ * @bufr: Buffer that will store the sorted subarray.
+ * @start: The front index of the array.
+ * @middl: The middle index of the array.
+ * @last: The back index of the array.
  */
-void top_down(int *A, int *B, size_t min, size_t mid, size_t max)
-{
-	size_t i = min, j = mid, k;
 
-	printf("Merging...\n");
-	printf("[left]: ");
-	print_parts(A, min, mid);
+void mergeSubarray(int *subary, int *bufr, size_t start, size_t middl,
+		size_t last)
+{
+	size_t x, y, z = 0;
+
+	printf("Merging...\n[left]: ");
+	print_array(subary + start, middl - start);
+
 	printf("[right]: ");
-	print_parts(A, mid, max);
-	for (k = min; k < max; k++)
-	{
-		if (i < mid && (j >= max || A[i] <= A[j]))
-		{
-			B[k] = A[i];
-			i++;
-		}
-		else
-		{
-			B[k] = A[j];
-			j++;
-		}
-	}
+	print_array(subary + middl, last - middl);
+
+	for (x = start, y = middl; x < middl && y < last; z++)
+		bufr[z] = (subary[x] < subary[y]) ? subary[x++] : subary[y++];
+	for (; x < middl; x++)
+		bufr[z++] = subary[x];
+	for (; y < last; y++)
+		bufr[z++] = subary[y];
+	for (x = start, z = 0; x < last; x++)
+		subary[x] = bufr[z++];
+
 	printf("[Done]: ");
-	print_parts(B, min, max);
-	for (k = min; k < max; k++)
-		A[k] = B[k];
+	print_array(subary + start, last - start);
 }
 
 /**
- * top_down_split - Split the array into two parts.
- * @A: Original input of array.
- * @B: Temporary array for merging.
- * @min: Start of array.
- * @max: End of array.
+ * mergeSort_recurse - Implements the merge sort algorithm via recursion.
+ * @subary: A subarray of an array of integers to be sorted.
+ * @bufr: A buffer that will store the sorted result.
+ * @start: The front index of the subarray.
+ * @last: The back index of the subarray.
  */
-void top_down_split(int *A, int *B, size_t min, size_t max)
+void mergeSort_recurse(int *subary, int *bufr, size_t start, size_t last)
 {
-	size_t mid;
+	size_t middl;
 
-	/* If the array has less than 2 elements, no need to split */
-	if (max - min < 2)
-		return;
-	mid = (min + max) / 2;
-	top_down_split(A, B, min, mid);
-	top_down_split(A, B, mid, max);
-	top_down(A, B, min, mid, max);
+	if (last - start > 1)
+	{
+		middl = start + (last - start) / 2;
+		mergeSort_recurse(subary, bufr, start, middl);
+		mergeSort_recurse(subary, bufr, middl, last);
+		mergeSubarray(subary, bufr, start, middl, last);
+	}
 }
 
 /**
- * merge_sort - Sort an array using the merge sort method.
- * @array: Input array.
- * @size: Size of the input array.
+ * merge_sort - Sort an array of integers in ascending
+ *              order using the merge sort algorithm.
+ * @array: An array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Will implement the top-down merge sort algorithm.
  */
+
+
 void merge_sort(int *array, size_t size)
 {
-	int *newlist;
+	int *bufr;
 
-	/* Check for valid input and base case for recursion */
 	if (array == NULL || size < 2)
 		return;
 
-	newlist = malloc(sizeof(int) * size);
-	if (newlist == NULL)
+	bufr = malloc(sizeof(int) * size);
+	if (bufr == NULL)
 		return;
-	top_down_split(array, newlist, 0, size);
-	free(newlist);
+
+	mergeSort_recurse(array, bufr, 0, size);
+
+	free(bufr);
 }

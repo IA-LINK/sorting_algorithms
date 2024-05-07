@@ -1,76 +1,70 @@
 #include "sort.h"
+
 /**
- * counting_sort - sorting array of ints
- * @array: array of ints
- * @size: size of array
+ * fetch_maxi - function gets the maximum value in an array of integers.
+ * @arr: An array of integers.
+ * @sze: The size of the array.
  *
+ * Return: maximum integer in the array is returned.
  */
+
+int fetch_maxi(int *arr, int sze)
+{
+	int maxi, x;
+
+	for (maxi = arr[0], x = 1; x < sze; x++)
+	{
+		if (arr[x] > maxi)
+			maxi = arr[x];
+	}
+
+	return (maxi);
+}
+
+/**
+ * counting_sort - Sort an array of integers in ascending order
+ *                 using the counting sort algorithm.
+ * @array: The array of integers.
+ * @size: The size of the array.
+ *
+ * Description: Prints the counting array after setting it up.
+ */
+
 void counting_sort(int *array, size_t size)
 {
-	int *copy, *counting;
-	unsigned int max_value, i, temp;
+	int *counter, *sort, maxi, x;
 
 	if (array == NULL || size < 2)
 		return;
 
-	i = 0;
-	max_value = 0;
-	while (i < size)
-	{
-		if (array[i] > (int)max_value)
-			max_value = array[i];
-		i++;
-	}
-	max_value++;
-
-	counting = malloc(max_value * sizeof(int));
-	if (counting == NULL)
+	sort = malloc(sizeof(int) * size);
+	if (sort == NULL)
 		return;
-	copy = malloc(size * sizeof(int));
-	if (copy == NULL)
+	maxi = fetch_maxi(array, size);
+	counter = malloc(sizeof(int) * (maxi + 1));
+	if (counter == NULL)
 	{
-		free(counting);
+		free(sort);
 		return;
 	}
 
-	i = 0;
-	while (i < size)
+	for (x = 0; x < (maxi + 1); x++)
+		counter[x] = 0;
+	for (x = 0; x < (int)size; x++)
+		counter[array[x]] += 1;
+	for (x = 0; x < (maxi + 1); x++)
+		counter[x] += counter[x - 1];
+	print_array(counter, maxi + 1);
+
+	for (x = 0; x < (int)size; x++)
 	{
-		copy[i] = array[i];
-		i++;
+		sort[counter[array[x]] - 1] = array[x];
+		counter[array[x]] -= 1;
 	}
 
-	i = 0;
-	while (i < max_value)
-	{
-		counting[i] = 0;
-		i++;
-	}
+	for (x = 0; x < (int)size; x++)
+		array[x] = sort[x];
 
-	i = 0;
-	while (i < size)
-	{
-		counting[array[i]]++;
-		i++;
-	}
-
-	i = 1;
-	while (i < max_value)
-	{
-		counting[i] += counting[i - 1];
-		i++;
-	}
-
-	print_array(counting, max_value);
-
-	i = 0;
-	while (i < size)
-	{
-		temp = copy[i];
-		array[counting[temp] - 1] = temp;
-		counting[temp]--;
-		i++;
-	}
-	free(counting);
-	free(copy);
+	free(sort);
+	free(counter);
 }
